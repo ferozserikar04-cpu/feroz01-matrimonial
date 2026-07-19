@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Heart, Search, Filter, Bell, MapPin, CheckCircle, Award, SlidersHorizontal, ArrowRight, ArrowLeft, UserCheck, MessageSquare, ShieldAlert, Sparkles, X, ChevronRight, Bookmark, Share2 } from 'lucide-react';
+import { Heart, Search, Filter, Bell, MapPin, CheckCircle, Award, SlidersHorizontal, ArrowRight, ArrowLeft, UserCheck, MessageSquare, ShieldAlert, Sparkles, X, ChevronRight, Bookmark, Share2, Download, Smartphone } from 'lucide-react';
 import { UserProfile, AppNotification, ScreenId } from '../types';
 import { MOCK_PROFILES } from '../data';
 
@@ -112,6 +112,31 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               </span>
             </div>
           </div>
+        </div>
+
+        {/* Native Android App Download Banner */}
+        <div className="bg-white border border-pink-100 rounded-3xl p-4 flex items-center justify-between shadow-xs hover:shadow-md transition duration-300 relative overflow-hidden">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-green-50 flex items-center justify-center text-green-600 border border-green-100 shrink-0">
+              <Smartphone className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <h4 className="text-xs font-black text-gray-800">Feroz 01 Android App</h4>
+                <span className="text-[8px] bg-green-100 text-green-800 font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-wider font-mono">Official APK</span>
+              </div>
+              <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">Signed by GitHub Actions. Direct safe install on your phone.</p>
+            </div>
+          </div>
+          <a
+            href="https://github.com/ferozserikar04-cpu/feroz01-matrimonial/releases/latest/download/Feroz_01_Matrimonial.apk"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 bg-[#880E4F] hover:bg-[#AD1457] text-white text-[10px] font-black px-3.5 py-2 rounded-2xl transition shadow-xs active:scale-95 shrink-0"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Download</span>
+          </a>
         </div>
 
         {/* Quick Filter Bar */}
