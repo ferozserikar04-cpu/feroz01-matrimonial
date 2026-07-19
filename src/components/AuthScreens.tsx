@@ -108,7 +108,11 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
         (window as any).confirmationResult = confirmationResult;
         setOtpSent(true);
       } catch (err: any) {
-        setLoginError('Failed to send OTP: ' + (err.message || err));
+        let errorMsg = err.message || String(err);
+        if (errorMsg.includes('operation-not-allowed') || (err.code && err.code === 'auth/operation-not-allowed')) {
+          errorMsg = 'Phone Authentication is not fully configured on Firebase. In modern Firebase, new projects require a "Blaze (Pay-as-you-go)" plan to send real SMS. To test for FREE: add your phone number as a "Phone number for testing" in the Firebase Console (Authentication > Sign-in method > Phone) and use your designated verification code.';
+        }
+        setLoginError('Failed to send OTP: ' + errorMsg);
         if ((window as any).recaptchaVerifier) {
           try {
             (window as any).recaptchaVerifier.clear();
