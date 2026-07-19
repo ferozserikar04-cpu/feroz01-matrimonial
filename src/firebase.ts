@@ -33,4 +33,19 @@ const db = getFirestore(app, config.firestoreDatabaseId || undefined);
 // Initialize Storage
 const storage = getStorage(app);
 
-export { app, auth, db, storage };
+// Initialize App Check optionally if a reCAPTCHA site key is provided
+let appCheck;
+if (typeof window !== 'undefined' && config.recaptchaSiteKey) {
+  try {
+    const { initializeAppCheck, ReCaptchaV3Provider } = await import('firebase/app-check');
+    appCheck = initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider(config.recaptchaSiteKey),
+      isTokenAutoRefreshEnabled: true
+    });
+    console.log('Firebase App Check initialized successfully.');
+  } catch (err) {
+    console.warn('Failed to initialize Firebase App Check:', err);
+  }
+}
+
+export { app, auth, db, storage, appCheck };

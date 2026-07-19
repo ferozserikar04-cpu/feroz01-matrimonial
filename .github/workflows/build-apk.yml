@@ -51,6 +51,24 @@ jobs:
             npx cap sync
           fi
 
+      - name: Configure and Print Signing Fingerprints (SHA-1 & SHA-256)
+        run: |
+          mkdir -p ~/.android
+          if [ ! -f ~/.android/debug.keystore ]; then
+            echo "Generating standard debug keystore..."
+            keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          fi
+          echo "================================================================"
+          echo "       ANDROID APP SIGNING FINGERPRINTS FOR FIREBASE CONSOLE    "
+          echo "================================================================"
+          echo "Add these fingerprints to your Firebase Project Settings under"
+          echo "your Android application (package: com.feroz01.matrimonial) to"
+          echo "enable Phone Authentication, App Check, and Google Sign-In:"
+          echo ""
+          echo "--- MD5 / SHA-1 / SHA-256 Fingerprints ---"
+          keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android | grep -E "MD5|SHA1|SHA256" || true
+          echo "================================================================"
+
       - name: Build Android APK
         run: |
           if [ -f "gradlew" ]; then
