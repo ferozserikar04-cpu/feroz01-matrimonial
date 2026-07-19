@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Feroz 01 Matrimonial</string>
+    <string name="title_activity_main">Feroz 01 Matrimonial</string>
+    <string name="package_name">com.feroz01.matrimonial</string>
+    <string name="custom_url_scheme">com.feroz01.matrimonial</string>
+</resources>
