@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Heart, Mail, Phone, ArrowRight, ArrowLeft, Check, User, MapPin, Briefcase, GraduationCap, Calendar, DollarSign, Sparkles, Upload, ShieldCheck, Lock } from 'lucide-react';
+import { Heart, Mail, Phone, ArrowRight, ArrowLeft, Check, User, MapPin, Briefcase, GraduationCap, Calendar, DollarSign, Sparkles, Upload, ShieldCheck, Lock, Smartphone } from 'lucide-react';
 import { ScreenId, RegistrationState } from '../types';
 import { UploadModule } from './UploadModule';
 import { auth, db } from '../firebase';
@@ -460,6 +460,18 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
           <span className="text-[11px] text-gray-400 text-center mt-3 leading-tight block px-4">
             By continuing, you agree to our <span className="underline cursor-pointer">Terms of Service</span> and <span className="underline cursor-pointer">Privacy Policy</span>.
           </span>
+
+          <div className="mt-4 flex flex-col items-center justify-center gap-2 border-t border-pink-100 pt-4">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Testing on a real phone?</span>
+            <a
+              href="/feroz01-matrimonial.apk"
+              download="feroz01-matrimonial.apk"
+              className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-3 px-5 rounded-full shadow-md transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Smartphone className="w-4 h-4 text-emerald-100 animate-bounce" />
+              Download Signed Release APK
+            </a>
+          </div>
         </div>
       </div>
     );
