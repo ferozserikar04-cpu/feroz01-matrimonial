@@ -366,7 +366,7 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
     if (isNativeApp) {
       try {
         const devDomain = 'https://ais-dev-lj6vw2hmoi5sipau6rgwcv-564410751488.asia-east1.run.app';
-        const preDomain = 'https://ais-pre-lj6vw2hmoi5sipau6rgwcv-564410751488.asia-east1.run.app';
+        const preDomain = 'https://gen-lang-client-0224367479.web.app';
         let webDomain = preDomain;
 
         if (window.location.origin.includes('localhost') || !window.location.origin.startsWith('http')) {
