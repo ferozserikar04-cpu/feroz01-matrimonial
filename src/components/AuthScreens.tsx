@@ -365,7 +365,7 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
 
     if (isNativeApp) {
       try {
-        const webDomain = 'https://gen-lang-client-0224367479.web.app';
+        const webDomain = 'https://ais-pre-lj6vw2hmoi5sipau6rgwcv-564410751488.asia-east1.run.app';
         const loginUrl = `${webDomain}/google-login.html`;
         console.log('Redirecting Capacitor native Google Sign-In to public domain:', loginUrl);
         window.open(loginUrl, '_system');

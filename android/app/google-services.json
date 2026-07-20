@@ -1,20 +1,20 @@
 {
   "project_info": {
-    "project_number": "154656560283",
-    "project_id": "gen-lang-client-0224367479",
-    "storage_bucket": "gen-lang-client-0224367479.firebasestorage.app"
+    "project_number": "676101515443",
+    "project_id": "gen-lang-client-0677543701",
+    "storage_bucket": "gen-lang-client-0677543701.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:154656560283:android:b0554b29eed4f4eec3e23e",
+        "mobilesdk_app_id": "1:676101515443:android:d712ccd0d306fa1d1d28c6",
         "android_client_info": {
           "package_name": "com.feroz01.matrimonial"
         }
       },
       "oauth_client": [
         {
-          "client_id": "154656560283-trrv1po9cedi8thv41lgrd7gjkcbm2bl.apps.googleusercontent.com",
+          "client_id": "676101515443-8p1pn1q58htnqa0s5rhnmb21kql5dlp3.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.feroz01.matrimonial",
@@ -22,20 +22,20 @@
           }
         },
         {
-          "client_id": "154656560283-lh89fvr5opafucfgnog8uof0t4vglt6f.apps.googleusercontent.com",
+          "client_id": "676101515443-s8mujk3ckjtr2ab6m7b8gjg1bq4m92ii.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDQwnIRxuZv6D0N7KFsqT6X2wjShzcDLO8"
+          "current_key": "AIzaSyBfUuImhFOPR28dXDVnrONgzjwAVfNcvrU"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "154656560283-lh89fvr5opafucfgnog8uof0t4vglt6f.apps.googleusercontent.com",
+              "client_id": "676101515443-s8mujk3ckjtr2ab6m7b8gjg1bq4m92ii.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
