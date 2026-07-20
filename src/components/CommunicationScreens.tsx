@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MessageSquare, Phone, Video, Send, CheckCircle2, ChevronRight, UserX, Shield, Lock, Eye, Bell, Globe, Sparkles, Sliders, LogOut, ArrowLeft, BarChart3, Users, Clock, AlertOctagon, Heart, Check, Plus, Trash2, User, Share2 } from 'lucide-react';
+import { MessageSquare, Phone, Video, Send, CheckCircle2, ChevronRight, UserX, Shield, Lock, Eye, Bell, Globe, Sparkles, Sliders, LogOut, ArrowLeft, BarChart3, Users, Clock, AlertOctagon, Heart, Check, Plus, Trash2, User, Share2, RefreshCw } from 'lucide-react';
 import { UserProfile, ChatSession, Message, ScreenId, PhotoItem, BiodataFile } from '../types';
 import { MOCK_CHATS, MOCK_PROFILES } from '../data';
 import { UploadModule } from './UploadModule';
@@ -313,13 +313,15 @@ interface SettingsScreenProps {
   onLogout: () => void;
   myProfile: UserProfile;
   onUpdateProfile: React.Dispatch<React.SetStateAction<UserProfile>>;
+  onDeleteProfile?: () => Promise<void>;
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ 
   onNavigate, 
   onLogout,
   myProfile,
-  onUpdateProfile
+  onUpdateProfile,
+  onDeleteProfile
 }) => {
   const [photoVisibility, setPhotoVisibility] = useState<'all' | 'verified' | 'blur'>('verified');
   const [pushNotifs, setPushNotifs] = useState(true);
@@ -336,6 +338,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [editBiodata, setEditBiodata] = useState<BiodataFile | null>(myProfile.biodataFile || null);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Deletion States
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Sync edit state when myProfile prop changes (e.g. from registration)
   useEffect(() => {
@@ -645,6 +653,39 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </button>
         </div>
 
+        {/* 3.2 Account & Security Settings */}
+        <div className="bg-white border border-pink-100 rounded-2xl p-4 space-y-3 shadow-2xs">
+          <h4 className="text-xs font-black text-gray-800 uppercase tracking-wider border-b border-pink-50 pb-2 flex items-center gap-1.5">
+            <Lock className="w-4 h-4 text-[#880E4F]" /> Account & Security
+          </h4>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center text-xs">
+              <div>
+                <span className="font-bold text-gray-700 block">Matrimonial ID</span>
+                <span className="text-[10px] text-gray-400 font-mono">F01-M-{myProfile.id.substring(0, 8).toUpperCase()}</span>
+              </div>
+              <span className="text-[9px] bg-green-50 text-green-700 border border-green-100 px-2 py-0.5 rounded-full font-bold">Verified Profile</span>
+            </div>
+
+            <div className="border-t border-pink-50/50 pt-2.5">
+              <button
+                onClick={() => {
+                  setDeleteConfirmText('');
+                  setDeleteError(null);
+                  setIsDeleteModalOpen(true);
+                }}
+                className="w-full bg-red-50 hover:bg-red-100 border border-red-100/50 text-red-600 font-bold py-2.5 px-4 rounded-xl text-xs transition flex items-center justify-between gap-1.5 cursor-pointer active:scale-98"
+              >
+                <div className="flex items-center gap-1.5">
+                  <Trash2 className="w-4 h-4 text-red-500" />
+                  <span>Delete My Profile</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-red-400" />
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* 4. Log out and Admin Bypass links */}
         <div className="space-y-2 pt-4">
           <button
@@ -662,6 +703,121 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </button>
         </div>
       </div>
+
+      {/* DELETE ACCOUNT CONFIRMATION DIALOG MODAL */}
+      <AnimatePresence>
+        {isDeleteModalOpen && (
+          <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4 select-none backdrop-blur-xs">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col border border-pink-100"
+            >
+              {/* Header */}
+              <div className="bg-red-50 border-b border-red-100 px-5 py-4 flex items-center gap-2">
+                <div className="p-1.5 bg-red-100 text-red-700 rounded-full">
+                  <AlertOctagon className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h4 className="text-[#880E4F] font-black text-sm uppercase tracking-wide">
+                    Delete Profile Permanently
+                  </h4>
+                  <p className="text-[10px] text-red-500 font-bold">This operation is IRREVERSIBLE</p>
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="p-5 space-y-4 text-gray-600">
+                <p className="text-xs text-gray-600 font-medium leading-relaxed">
+                  Are you sure you want to permanently delete your profile? This action cannot be undone.
+                </p>
+
+                <div className="bg-red-50/50 border border-red-100/50 rounded-xl p-3 text-[10px] text-red-800 leading-normal space-y-1">
+                  <span className="font-bold block">By proceeding, we will permanently purge:</span>
+                  <ul className="list-disc list-inside space-y-0.5 font-medium">
+                    <li>Your entire Firestore matrimonial profile info.</li>
+                    <li>All 6 secure profile photos from Storage.</li>
+                    <li>Your uploaded biodata document.</li>
+                    <li>Your matches, chat histories, & preference entries.</li>
+                    <li>Your Firebase Authentication credentials.</li>
+                  </ul>
+                </div>
+
+                {deleteError && (
+                  <div className="bg-red-50 text-red-600 text-[10px] font-bold p-3 rounded-xl border border-red-100 flex items-start gap-1.5">
+                    <AlertOctagon className="w-4 h-4 shrink-0 text-red-500 mt-0.5" />
+                    <span>{deleteError}</span>
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-wider block">
+                    Type "DELETE" to confirm
+                  </label>
+                  <input
+                    type="text"
+                    value={deleteConfirmText}
+                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                    placeholder="Type DELETE in capital letters"
+                    disabled={isDeleting}
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-800 uppercase tracking-widest focus:bg-white focus:ring-2 focus:ring-red-200 focus:border-red-400 outline-none transition disabled:opacity-50"
+                  />
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-5 py-4 bg-gray-50 border-t border-gray-100 flex gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!isDeleting) {
+                      setIsDeleteModalOpen(false);
+                      setDeleteConfirmText('');
+                      setDeleteError(null);
+                    }
+                  }}
+                  disabled={isDeleting}
+                  className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-500 font-black rounded-xl text-xs hover:bg-gray-100 transition cursor-pointer active:scale-98 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={deleteConfirmText !== 'DELETE' || isDeleting}
+                  onClick={async () => {
+                    if (onDeleteProfile) {
+                      setIsDeleting(true);
+                      setDeleteError(null);
+                      try {
+                        await onDeleteProfile();
+                        setIsDeleteModalOpen(false);
+                        triggerToast("Your profile was successfully deleted.");
+                      } catch (err: any) {
+                        setDeleteError(err.message || "An unexpected error occurred during account deletion.");
+                        setIsDeleting(false);
+                      }
+                    } else {
+                      setDeleteError("Deletion service is currently unavailable.");
+                    }
+                  }}
+                  className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-black rounded-xl text-xs shadow-md transition flex items-center justify-center gap-1 cursor-pointer active:scale-98 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {isDeleting ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Purging...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-3.5 h-3.5" /> Purge Profile
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

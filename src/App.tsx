@@ -7,9 +7,10 @@ import {
 } from 'lucide-react';
 import { ScreenId, UserProfile, AppNotification, PhotoItem, BiodataFile } from './types';
 import { MOCK_PROFILES, MOCK_NOTIFICATIONS } from './data';
-import { auth, db } from './firebase';
-import { onAuthStateChanged, signOut, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
-import { collection, onSnapshot, doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db, storage } from './firebase';
+import { onAuthStateChanged, signOut, GoogleAuthProvider, signInWithCredential, deleteUser } from 'firebase/auth';
+import { collection, onSnapshot, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
+import { ref, deleteObject } from 'firebase/storage';
 import { App as CapApp } from '@capacitor/app';
 
 // Component Imports
@@ -336,6 +337,114 @@ export default function App() {
     setCurrentScreen('welcome');
   };
 
+  const handleDeleteAccount = async (): Promise<void> => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const userId = user.uid;
+
+        // 1. Delete profile document from Firestore first (while authorized)
+        await deleteDoc(doc(db, 'profiles', userId));
+
+        // 2. Delete all uploaded profile photos from Firebase Storage
+        if (myProfile.photoItems && myProfile.photoItems.length > 0) {
+          for (const photo of myProfile.photoItems) {
+            if (photo.url && photo.url.includes('firebasestorage.googleapis.com')) {
+              try {
+                const photoRef = ref(storage, photo.url);
+                await deleteObject(photoRef);
+              } catch (storageErr) {
+                console.warn('Failed to delete photo from storage during account purge:', photo.url, storageErr);
+              }
+            }
+          }
+        }
+
+        // 3. Delete uploaded biodata file from Firebase Storage
+        if (myProfile.biodataFile && myProfile.biodataFile.url && myProfile.biodataFile.url.includes('firebasestorage.googleapis.com')) {
+          try {
+            const biodataRef = ref(storage, myProfile.biodataFile.url);
+            await deleteObject(biodataRef);
+          } catch (storageErr) {
+            console.warn('Failed to delete biodata from storage during account purge:', myProfile.biodataFile.url, storageErr);
+          }
+        }
+
+        // 4. Delete Firebase Authentication account
+        try {
+          await deleteUser(user);
+        } catch (authErr: any) {
+          console.error('Error deleting Firebase Auth user account:', authErr);
+          if (authErr.code === 'auth/requires-recent-login') {
+            throw new Error('For security, deleting your account requires recent authentication. Please sign out, log back in, and try again.');
+          } else {
+            throw authErr;
+          }
+        }
+      }
+
+      // 5. Purge and reset all local React state
+      setMyProfile({
+        id: 'user',
+        name: 'Feroz Ahmad',
+        gender: 'Male',
+        age: 28,
+        height: "5'11\"",
+        religion: 'Islam',
+        caste: 'Sunni',
+        motherTongue: 'Hindi',
+        profession: 'Tech Lead',
+        income: '₹24,00,000 per annum',
+        education: 'M.Tech Software Engineering',
+        location: 'Delhi NCR, India',
+        photos: [
+          'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&auto=format&fit=crop&q=80'
+        ],
+        avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+        verified: true,
+        online: true,
+        matchScore: 100,
+        about: 'I am a highly educated and focused software engineer with deep interest in building secure applications. Living and working in Delhi NCR. Deeply passionate about photography, technology, and traveling.',
+        familyType: 'Nuclear Family',
+        familyValues: 'Moderate / Modern',
+        fatherOccupation: 'Retired Government Officer',
+        motherOccupation: 'Educator',
+        siblings: '1 Younger sister (working in banking)',
+        interests: ['Photography', 'Tech', 'Travel'],
+        partnerExpectations: {
+          ageRange: '23 - 27 years',
+          heightRange: "5'2\" - 5'7\"",
+          religion: 'Islam',
+          education: 'Graduate / Postgraduate',
+          incomeRange: 'Any'
+        },
+        photoItems: [
+          {
+            id: 'user-p1',
+            url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&auto=format&fit=crop&q=80',
+            isPrimary: true,
+            zoom: 1,
+            rotation: 0,
+            xOffset: 0,
+            yOffset: 0
+          }
+        ],
+        biodataFile: null
+      });
+
+      // Clear all notifications
+      setNotifications([]);
+
+      // Log out
+      setIsLoggedIn(false);
+      setCurrentScreen('welcome');
+
+    } catch (err: any) {
+      console.error('Failed to complete profile deletion:', err);
+      throw err;
+    }
+  };
+
   const handleSelectProfile = (profile: UserProfile) => {
     setSelectedProfile(profile);
     setCurrentScreen('profile');
@@ -479,6 +588,7 @@ export default function App() {
             onLogout={handleLogout} 
             myProfile={myProfile}
             onUpdateProfile={setMyProfile}
+            onDeleteProfile={handleDeleteAccount}
           />
         );
       case 'admin':
