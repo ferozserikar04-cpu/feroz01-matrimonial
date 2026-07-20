@@ -366,7 +366,7 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
     if (isNativeApp) {
       try {
         const webDomain = window.location.origin.includes('localhost')
-          ? 'https://ais-dev-fandmxml6quvget6dtnx3u-332855886910.asia-southeast1.run.app'
+          ? 'https://ais-pre-lj6vw2hmoi5sipau6rgwcv-564410751488.asia-east1.run.app'
           : window.location.origin;
         const loginUrl = `${webDomain}/google-login.html`;
         
