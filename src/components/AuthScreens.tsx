@@ -26,6 +26,7 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [unauthorizedDomain, setUnauthorizedDomain] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // Recaptcha verifier ref for strict lifecycle management
@@ -431,6 +432,9 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
       let errorMsg = err.message || 'Failed to authenticate with Google. Please try again.';
       if (err.code === 'auth/popup-blocked') {
         errorMsg = 'Popup blocked by browser. Please enable popups or use email sign-in.';
+      } else if (err.code === 'auth/unauthorized-domain' || (err.message && err.message.includes('unauthorized-domain'))) {
+        setUnauthorizedDomain(window.location.hostname);
+        errorMsg = 'This domain is not authorized in your Firebase Project console. Please see the detailed instructions shown below.';
       }
       setLoginError(errorMsg);
     } finally {
@@ -722,6 +726,32 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
               </svg>
               Continue with Google
             </button>
+
+            {unauthorizedDomain && (
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-left shadow-xs">
+                <span className="text-xs font-bold text-red-800 uppercase tracking-wider block mb-2 flex items-center gap-1">
+                  ⚠️ Authorized Domain Needed
+                </span>
+                <p className="text-xs text-red-700 leading-relaxed mb-3">
+                  Google Sign-In failed because this application's domain is not yet authorized in your Firebase Project configuration.
+                </p>
+                <div className="bg-white border border-red-100 rounded-xl p-3 mb-3">
+                  <span className="text-[10px] font-bold text-gray-400 block uppercase mb-1">Domain to Authorize:</span>
+                  <code className="text-xs font-mono font-bold text-red-600 break-all bg-red-50/50 px-1.5 py-0.5 rounded">{unauthorizedDomain}</code>
+                </div>
+                <h5 className="text-xs font-bold text-gray-800 mb-1">How to fix in 1 minute:</h5>
+                <ol className="list-decimal list-inside text-[11px] text-gray-600 space-y-1">
+                  <li>Go to your <a href={`https://console.firebase.google.com/project/${auth.app.options.projectId}/authentication/settings`} target="_blank" rel="noreferrer" className="text-pink-700 underline font-semibold hover:text-pink-900">Firebase Console Settings</a>.</li>
+                  <li>In the tabs at the top, select <strong>Settings</strong>.</li>
+                  <li>Click on <strong>Authorized domains</strong> from the left menu list.</li>
+                  <li>Click the <strong>Add domain</strong> button.</li>
+                  <li>Paste the domain shown above and click <strong>Add</strong>.</li>
+                </ol>
+                <div className="mt-3 text-[11px] text-amber-800 bg-amber-50 p-2.5 rounded-xl border border-amber-100">
+                  <strong>Fast Option:</strong> You can use the <strong>"One-Click Guest Login"</strong> below to instantly bypass authentication and test everything!
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Divider */}

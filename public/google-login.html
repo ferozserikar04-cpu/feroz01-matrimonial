@@ -100,9 +100,13 @@
       loadingSpinner.classList.add('hidden');
     }
 
-    function showError(msg) {
+    function showError(msg, isHTML = false) {
       hideLoading();
-      errorMessage.innerText = msg;
+      if (isHTML) {
+        errorMessage.innerHTML = msg;
+      } else {
+        errorMessage.innerText = msg;
+      }
       errorMessage.classList.remove('hidden');
     }
 
@@ -155,7 +159,28 @@
 
       } catch (err) {
         console.error("Google Auth failed:", err);
-        showError(err.message || 'Authentication failed. Please try again.');
+        if (err.code === 'auth/unauthorized-domain' || (err.message && err.message.includes('unauthorized-domain'))) {
+          const host = window.location.hostname;
+          showError(`
+            <div class="text-left space-y-2">
+              <span class="font-bold text-red-800 block">⚠️ Authorized Domain Needed</span>
+              <p class="text-xs text-red-700 leading-relaxed">
+                This domain is not authorized in your Firebase console settings.
+              </p>
+              <div class="bg-white p-2 rounded border border-red-100 font-mono text-[11px] font-bold text-red-600 break-all select-all">
+                ${host}
+              </div>
+              <p class="text-xs font-bold text-gray-800 pt-1">To Authorize:</p>
+              <ol class="list-decimal list-inside text-[10px] text-gray-600 space-y-1">
+                <li>Go to <a href="https://console.firebase.google.com/project/${firebaseConfig.projectId}/authentication/settings" target="_blank" class="text-pink-700 underline font-semibold">Firebase Authentication Settings</a></li>
+                <li>Go to <strong>Authorized domains</strong></li>
+                <li>Click <strong>Add domain</strong> and paste <code>${host}</code></li>
+              </ol>
+            </div>
+          `, true);
+        } else {
+          showError(err.message || 'Authentication failed. Please try again.');
+        }
       }
     });
 
@@ -175,7 +200,28 @@
       }
     }).catch((err) => {
       console.error("Redirect result error:", err);
-      showError(err.message);
+      if (err.code === 'auth/unauthorized-domain' || (err.message && err.message.includes('unauthorized-domain'))) {
+        const host = window.location.hostname;
+        showError(`
+          <div class="text-left space-y-2">
+            <span class="font-bold text-red-800 block">⚠️ Authorized Domain Needed</span>
+            <p class="text-xs text-red-700 leading-relaxed">
+              This domain is not authorized in your Firebase console settings.
+            </p>
+            <div class="bg-white p-2 rounded border border-red-100 font-mono text-[11px] font-bold text-red-600 break-all select-all">
+              ${host}
+            </div>
+            <p class="text-xs font-bold text-gray-800 pt-1">To Authorize:</p>
+            <ol class="list-decimal list-inside text-[10px] text-gray-600 space-y-1">
+              <li>Go to <a href="https://console.firebase.google.com/project/${firebaseConfig.projectId}/authentication/settings" target="_blank" class="text-pink-700 underline font-semibold">Firebase Authentication Settings</a></li>
+              <li>Go to <strong>Authorized domains</strong></li>
+              <li>Click <strong>Add domain</strong> and paste <code>${host}</code></li>
+            </ol>
+          </div>
+        `, true);
+      } else {
+        showError(err.message);
+      }
     });
   </script>
 </body>
