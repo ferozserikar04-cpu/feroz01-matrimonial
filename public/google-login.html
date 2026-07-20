@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Secure Connect - Feroz 01 Matrimonial</title>
+  <!-- Tailwind CSS CDN for elegant styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #FFF5F7 0%, #FCE4EC 100%);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+  <div class="bg-white rounded-3xl shadow-xl border border-pink-100 max-w-md w-full p-8 text-center relative overflow-hidden">
+    <!-- Heart background design elements -->
+    <div class="absolute -top-10 -right-10 w-40 h-40 bg-pink-100/50 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-pink-100/50 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col items-center">
+      <!-- App Icon / Logo -->
+      <div class="w-16 h-16 bg-gradient-to-tr from-[#880E4F] to-[#C2185B] rounded-2xl flex items-center justify-center shadow-lg shadow-pink-900/10 mb-6">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white fill-white/10" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+      </div>
+
+      <h1 class="text-2xl font-bold text-[#880E4F] tracking-tight mb-2">Google Secure Connect</h1>
+      <p class="text-sm text-gray-500 max-w-xs mb-8 leading-relaxed">
+        Authenticate securely to continue to your premium matrimonial dashboard.
+      </p>
+
+      <!-- Status Indicator -->
+      <div id="status-container" class="w-full mb-6">
+        <button id="btn-login" class="w-full bg-[#880E4F] hover:bg-[#700B3F] text-white font-semibold py-3.5 px-6 rounded-2xl transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-3">
+          <!-- Google Icon -->
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22c-.87-2.6-2.86-4.53-6.16-4.53z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+          </svg>
+          Continue with Google
+        </button>
+      </div>
+
+      <!-- Spinner (Hidden by default) -->
+      <div id="loading-spinner" class="hidden flex-col items-center gap-3 py-4">
+        <div class="w-10 h-10 border-4 border-pink-200 border-t-[#880E4F] rounded-full animate-spin"></div>
+        <p id="loading-text" class="text-sm text-[#880E4F] font-medium">Connecting to Google...</p>
+      </div>
+
+      <p id="error-message" class="text-xs text-red-600 font-medium hidden mt-4 max-w-xs bg-red-50 p-3 rounded-xl border border-red-100"></p>
+
+      <div class="border-t border-pink-100 w-full pt-6 mt-8">
+        <p class="text-xs text-gray-400">
+          Powered by Firebase Authentication & Google Safe Connect
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase Scripts from CDN (Compatibility Version to ensure bulletproof execution) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+  <script>
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBqm68XH4YAFTvq7MenwOY0YZdmY8A7Q04",
+      authDomain: "gen-lang-client-0224367479.firebaseapp.com",
+      projectId: "gen-lang-client-0224367479",
+      storageBucket: "gen-lang-client-0224367479.firebasestorage.app",
+      messagingSenderId: "154656560283",
+      appId: "1:154656560283:web:389b4b26dc3a4d2bc3e23e"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    const btnLogin = document.getElementById('btn-login');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const errorMessage = document.getElementById('error-message');
+    const loadingText = document.getElementById('loading-text');
+
+    function showLoading(text) {
+      btnLogin.classList.add('hidden');
+      loadingSpinner.classList.remove('hidden');
+      loadingText.innerText = text;
+      errorMessage.classList.add('hidden');
+    }
+
+    function hideLoading() {
+      btnLogin.classList.remove('hidden');
+      loadingSpinner.classList.add('hidden');
+    }
+
+    function showError(msg) {
+      hideLoading();
+      errorMessage.innerText = msg;
+      errorMessage.classList.remove('hidden');
+    }
+
+    // Google Provider configuration
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.addScope('email');
+    provider.addScope('profile');
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    // Handle Google login
+    btnLogin.addEventListener('click', async () => {
+      showLoading('Opening secure login window...');
+      try {
+        // We use signInWithPopup which is standard and highly reliable on browsers
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+        
+        showLoading('Generating deep-link credentials...');
+        
+        // Retrieve the ID Token
+        const idToken = await user.getIdToken();
+        
+        // Extract basic details safely
+        const email = encodeURIComponent(user.email || '');
+        const name = encodeURIComponent(user.displayName || 'Google User');
+        const photo = encodeURIComponent(user.photoURL || '');
+        const uid = encodeURIComponent(user.uid);
+        
+        showLoading('Redirecting to matrimonial app...');
+        
+        // Deep-link URI back to our Capacitor App
+        const deepLinkUri = `com.feroz01.matrimonial://google-auth?idToken=${idToken}&email=${email}&name=${name}&photo=${photo}&uid=${uid}`;
+        
+        console.log("Redirecting to:", deepLinkUri);
+        
+        // Try standard location href first
+        window.location.href = deepLinkUri;
+        
+        // Fallback: If browser doesn't trigger automatically, use an iframe or button trigger
+        setTimeout(() => {
+          const iframe = document.createElement('iframe');
+          iframe.style.display = 'none';
+          iframe.src = deepLinkUri;
+          document.body.appendChild(iframe);
+        }, 500);
+
+        setTimeout(() => {
+          showLoading('Successfully logged in! You can now return to the app.');
+        }, 1500);
+
+      } catch (err) {
+        console.error("Google Auth failed:", err);
+        showError(err.message || 'Authentication failed. Please try again.');
+      }
+    });
+
+    // Check if user is already signed in or returning from a redirect
+    auth.getRedirectResult().then(async (result) => {
+      if (result && result.user) {
+        showLoading('Processing authenticated session...');
+        const user = result.user;
+        const idToken = await user.getIdToken();
+        const email = encodeURIComponent(user.email || '');
+        const name = encodeURIComponent(user.displayName || 'Google User');
+        const photo = encodeURIComponent(user.photoURL || '');
+        const uid = encodeURIComponent(user.uid);
+        
+        const deepLinkUri = `com.feroz01.matrimonial://google-auth?idToken=${idToken}&email=${email}&name=${name}&photo=${photo}&uid=${uid}`;
+        window.location.href = deepLinkUri;
+      }
+    }).catch((err) => {
+      console.error("Redirect result error:", err);
+      showError(err.message);
+    });
+  </script>
+</body>
+</html>

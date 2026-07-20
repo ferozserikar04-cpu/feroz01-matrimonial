@@ -4,6 +4,7 @@ import { Heart, Mail, Phone, ArrowRight, ArrowLeft, Check, User, MapPin, Briefca
 import { ScreenId, RegistrationState } from '../types';
 import { UploadModule } from './UploadModule';
 import { auth, db } from '../firebase';
+import { Capacitor } from '@capacitor/core';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signInWithPhoneNumber, RecaptchaVerifier, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 
@@ -351,6 +352,26 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
   const handleGoogleLogin = async () => {
     setLoginError('');
     setIsLoading(true);
+    
+    // Check if running on a native Android/iOS platform (Capacitor)
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const webDomain = window.location.origin.includes('localhost')
+          ? 'https://ais-dev-fandmxml6quvget6dtnx3u-332855886910.asia-southeast1.run.app'
+          : window.location.origin;
+        const loginUrl = `${webDomain}/google-login.html`;
+        
+        console.log('Redirecting Capacitor native Google Sign-In to:', loginUrl);
+        window.open(loginUrl, '_system');
+      } catch (err: any) {
+        console.error('Failed to open Google Login web portal:', err);
+        setLoginError(err.message || 'Failed to open secure Google login portal.');
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });

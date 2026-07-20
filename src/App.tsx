@@ -8,8 +8,9 @@ import {
 import { ScreenId, UserProfile, AppNotification, PhotoItem, BiodataFile } from './types';
 import { MOCK_PROFILES, MOCK_NOTIFICATIONS } from './data';
 import { auth, db } from './firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signOut, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { collection, onSnapshot, doc, setDoc, getDoc } from 'firebase/firestore';
+import { App as CapApp } from '@capacitor/app';
 
 // Component Imports
 import { AuthScreens } from './components/AuthScreens';
@@ -79,6 +80,122 @@ export default function App() {
     ],
     biodataFile: null
   });
+
+  // Listen for Deep links (for native Google Auth redirect)
+  useEffect(() => {
+    const handleDeepLink = async (urlStr: string) => {
+      try {
+        if (!urlStr) return;
+        
+        // Parse the deep link safely
+        let idToken = '';
+        let decodedEmail = '';
+        let decodedName = '';
+        let decodedPhoto = '';
+        let decodedUid = '';
+
+        if (urlStr.includes('idToken=')) {
+          const urlParams = new URLSearchParams(urlStr.split('?')[1]);
+          idToken = urlParams.get('idToken') || '';
+          decodedEmail = urlParams.get('email') || '';
+          decodedName = urlParams.get('name') || '';
+          decodedPhoto = urlParams.get('photo') || '';
+          decodedUid = urlParams.get('uid') || '';
+        }
+
+        if (idToken) {
+          setInAppToast({
+            title: "⚡ Connecting...",
+            desc: "Authenticating with Google Safe Connect."
+          });
+          setTimeout(() => setInAppToast(null), 3000);
+          
+          const credential = GoogleAuthProvider.credential(idToken);
+          const userCredential = await signInWithCredential(auth, credential);
+          const user = userCredential.user;
+          
+          // Check if user has profile in database
+          const userDocRef = doc(db, 'profiles', user.uid);
+          const userDoc = await getDoc(userDocRef);
+          let profileToLoad;
+          
+          if (userDoc.exists()) {
+            profileToLoad = userDoc.data();
+          } else {
+            profileToLoad = {
+              id: user.uid,
+              name: decodedName || user.displayName || 'Google User',
+              gender: 'Female' as const, // default Female for matching
+              age: 25,
+              height: "5'4\"",
+              religion: 'Islam',
+              caste: 'General',
+              motherTongue: 'Hindi',
+              profession: 'Professional',
+              income: '₹12,00,000 per annum',
+              education: 'Graduate',
+              location: 'Delhi NCR, India',
+              photos: [decodedPhoto || user.photoURL || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500&auto=format&fit=crop&q=80'],
+              avatar: decodedPhoto || user.photoURL || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+              verified: true,
+              online: true,
+              matchScore: 92,
+              about: 'Registered via Google Safe Connect. Looking forward to finding a perfect match.',
+              familyType: 'Nuclear Family',
+              familyValues: 'Moderate / Modern',
+              fatherOccupation: 'Government Officer',
+              motherOccupation: 'Educator',
+              siblings: '1 sibling',
+              interests: ['Reading', 'Travel'],
+              partnerExpectations: {
+                ageRange: '25-30',
+                heightRange: "5'7\" - 6'0\"",
+                religion: 'Islam',
+                education: 'Graduate / Postgraduate',
+                incomeRange: 'Any'
+              }
+            };
+            await setDoc(userDocRef, profileToLoad);
+          }
+          
+          setMyProfile(profileToLoad as UserProfile);
+          setIsLoggedIn(true);
+          setCurrentScreen('home');
+          
+          setInAppToast({
+            title: "🎉 Welcome!",
+            desc: `Logged in successfully as ${profileToLoad.name}.`
+          });
+          setTimeout(() => setInAppToast(null), 4000);
+        }
+      } catch (err: any) {
+        console.error("Deep link sign-in failed:", err);
+        setInAppToast({
+          title: "❌ Authentication Error",
+          desc: err.message || "Failed to parse secure deep link credentials."
+        });
+        setTimeout(() => setInAppToast(null), 5000);
+      }
+    };
+
+    // For cold starts
+    CapApp.getLaunchUrl().then((launchUrl) => {
+      if (launchUrl && launchUrl.url) {
+        handleDeepLink(launchUrl.url);
+      }
+    });
+
+    // For active/running state
+    const listener = CapApp.addListener('appUrlOpen', (data: any) => {
+      if (data && data.url) {
+        handleDeepLink(data.url);
+      }
+    });
+
+    return () => {
+      listener.then(l => l.remove());
+    };
+  }, []);
 
   // Real-time Firebase Synchronization
   useEffect(() => {
