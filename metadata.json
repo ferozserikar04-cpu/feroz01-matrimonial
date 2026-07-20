@@ -1,0 +1,6 @@
+{
+  "name": "Feroz 01 Matrimonial",
+  "description": "A premium, elegant, and minimal Matrimonial application designed with Material 3 principles.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

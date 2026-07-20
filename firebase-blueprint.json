@@ -1,0 +1,98 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Candidate profile details for Matrimony",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier, usually matching Firebase Auth UID"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "gender": {
+          "type": "string",
+          "enum": ["Male", "Female"]
+        },
+        "age": {
+          "type": "number"
+        },
+        "height": {
+          "type": "string"
+        },
+        "religion": {
+          "type": "string"
+        },
+        "caste": {
+          "type": "string"
+        },
+        "motherTongue": {
+          "type": "string"
+        },
+        "profession": {
+          "type": "string"
+        },
+        "income": {
+          "type": "string"
+        },
+        "education": {
+          "type": "string"
+        },
+        "location": {
+          "type": "string"
+        },
+        "photos": {
+          "type": "array"
+        },
+        "avatar": {
+          "type": "string"
+        },
+        "verified": {
+          "type": "boolean"
+        },
+        "online": {
+          "type": "boolean"
+        },
+        "matchScore": {
+          "type": "number"
+        },
+        "about": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "familyType": {
+          "type": "string"
+        },
+        "familyValues": {
+          "type": "string"
+        },
+        "fatherOccupation": {
+          "type": "string"
+        },
+        "motherOccupation": {
+          "type": "string"
+        },
+        "siblings": {
+          "type": "string"
+        },
+        "interests": {
+          "type": "array"
+        },
+        "partnerExpectations": {
+          "type": "object"
+        }
+      },
+      "required": ["id", "name", "gender"]
+    }
+  },
+  "firestore": {
+    "/profiles/{userId}": {
+      "schema": "UserProfile",
+      "description": "Matrimonial profiles of active candidates"
+    }
+  }
+}

@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net (default deny all)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Global Safety Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Static Schema validation for Candidate User Profiles
+    function isValidUserProfile(data) {
+      return data.id is string
+        && data.id.size() <= 128
+        && data.name is string
+        && data.name.size() >= 2
+        && data.name.size() <= 150
+        && (data.gender == 'Male' || data.gender == 'Female')
+        && (data.age == null || (data.age is number && data.age >= 18 && data.age <= 100))
+        && (data.verified == null || data.verified is bool)
+        && (data.online == null || data.online is bool);
+    }
+
+    // 3. Match rules for candidate user profiles
+    match /profiles/{userId} {
+      // Allow list and get for logged-in candidates
+      allow get: if isSignedIn() && isValidId(userId);
+      allow list: if isSignedIn();
+
+      // Allow create if authenticated and profile is schema-valid
+      allow create: if isSignedIn()
+                    && isValidId(userId)
+                    && isValidUserProfile(incoming());
+
+      // Allow updates only if updating own profile and profile matches schema
+      allow update: if isSignedIn()
+                    && isValidId(userId)
+                    && request.auth.uid == userId
+                    && isValidUserProfile(incoming());
+
+      // Allow deletes only if owner
+      allow delete: if isSignedIn()
+                    && isValidId(userId)
+                    && request.auth.uid == userId;
+    }
+  }
+}

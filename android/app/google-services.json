@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "154656560283",
+    "project_id": "gen-lang-client-0224367479",
+    "storage_bucket": "gen-lang-client-0224367479.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:154656560283:android:b0554b29eed4f4eec3e23e",
+        "android_client_info": {
+          "package_name": "com.feroz01.matrimonial"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "154656560283-trrv1po9cedi8thv41lgrd7gjkcbm2bl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.feroz01.matrimonial",
+            "certificate_hash": "736a1e11f3391dcad10b9c00223ddd93ceac87c6"
+          }
+        },
+        {
+          "client_id": "154656560283-lh89fvr5opafucfgnog8uof0t4vglt6f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQwnIRxuZv6D0N7KFsqT6X2wjShzcDLO8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "154656560283-lh89fvr5opafucfgnog8uof0t4vglt6f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
