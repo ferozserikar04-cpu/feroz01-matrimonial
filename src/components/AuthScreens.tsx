@@ -353,8 +353,16 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
     setLoginError('');
     setIsLoading(true);
     
-    // Check if running on a native Android/iOS platform (Capacitor)
-    if (Capacitor.isNativePlatform()) {
+    // Check if running on a native Android/iOS platform (Capacitor webview wrapper)
+    const isNativeApp = 
+      Capacitor.isNativePlatform() || 
+      Capacitor.getPlatform() === 'android' || 
+      Capacitor.getPlatform() === 'ios' || 
+      window.location.origin === 'http://localhost' || 
+      window.location.origin === 'https://localhost' || 
+      !window.location.origin.startsWith('http');
+
+    if (isNativeApp) {
       try {
         const webDomain = window.location.origin.includes('localhost')
           ? 'https://ais-dev-fandmxml6quvget6dtnx3u-332855886910.asia-southeast1.run.app'
