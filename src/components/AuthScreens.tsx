@@ -365,11 +365,39 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
 
     if (isNativeApp) {
       try {
-        const webDomain = window.location.origin.includes('localhost')
-          ? 'https://ais-pre-lj6vw2hmoi5sipau6rgwcv-564410751488.asia-east1.run.app'
-          : window.location.origin;
+        const devDomain = 'https://ais-dev-lj6vw2hmoi5sipau6rgwcv-564410751488.asia-east1.run.app';
+        const preDomain = 'https://ais-pre-lj6vw2hmoi5sipau6rgwcv-564410751488.asia-east1.run.app';
+        let webDomain = preDomain;
+
+        if (window.location.origin.includes('localhost') || !window.location.origin.startsWith('http')) {
+          // Probe domains to see which one is active and serving the app
+          try {
+            console.log('Probing development domain...', devDomain);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 1800);
+            await fetch(`${devDomain}/google-login.html`, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
+            clearTimeout(timeoutId);
+            webDomain = devDomain;
+            console.log('Selected active development domain:', devDomain);
+          } catch (e) {
+            console.log('Development domain unreachable or slow. Checking production pre-domain...');
+            try {
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 1800);
+              await fetch(`${preDomain}/google-login.html`, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
+              clearTimeout(timeoutId);
+              webDomain = preDomain;
+              console.log('Selected active production pre-domain:', preDomain);
+            } catch (e2) {
+              console.warn('Both domains unreachable/unresponsive. Defaulting to production pre-domain:', preDomain);
+              webDomain = preDomain;
+            }
+          }
+        } else {
+          webDomain = window.location.origin;
+        }
+
         const loginUrl = `${webDomain}/google-login.html`;
-        
         console.log('Redirecting Capacitor native Google Sign-In to:', loginUrl);
         window.open(loginUrl, '_system');
       } catch (err: any) {
