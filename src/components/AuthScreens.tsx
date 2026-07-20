@@ -432,6 +432,8 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
       let errorMsg = err.message || 'Failed to authenticate with Google. Please try again.';
       if (err.code === 'auth/popup-blocked') {
         errorMsg = 'Popup blocked by browser. Please enable popups or use email sign-in.';
+      } else if (err.code === 'auth/user-cancelled' || err.code === 'auth/popup-closed-by-user' || (err.message && (err.message.includes('user-cancelled') || err.message.includes('popup-closed-by-user')))) {
+        errorMsg = 'Sign-In was cancelled. If you would like to proceed, please choose your Google account and allow access.';
       } else if (err.code === 'auth/unauthorized-domain' || (err.message && err.message.includes('unauthorized-domain'))) {
         setUnauthorizedDomain(window.location.hostname);
         errorMsg = 'This domain is not authorized in your Firebase Project console. Please see the detailed instructions shown below.';

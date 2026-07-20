@@ -178,6 +178,8 @@
               </ol>
             </div>
           `, true);
+        } else if (err.code === 'auth/user-cancelled' || err.code === 'auth/popup-closed-by-user' || (err.message && (err.message.includes('user-cancelled') || err.message.includes('popup-closed-by-user')))) {
+          showError('Sign-In was cancelled. If you would like to proceed, please select your Google account and grant permissions.');
         } else {
           showError(err.message || 'Authentication failed. Please try again.');
         }
@@ -219,6 +221,8 @@
             </ol>
           </div>
         `, true);
+      } else if (err.code === 'auth/user-cancelled' || err.code === 'auth/popup-closed-by-user' || (err.message && (err.message.includes('user-cancelled') || err.message.includes('popup-closed-by-user')))) {
+        showError('Sign-In was cancelled. If you would like to proceed, please select your Google account and grant permissions.');
       } else {
         showError(err.message);
       }

@@ -343,8 +343,30 @@ export default function App() {
       if (user) {
         const userId = user.uid;
 
+        // Pre-emptively check token result age to avoid auth/requires-recent-login
+        try {
+          const tokenResult = await user.getIdTokenResult(true);
+          const authTimeMs = Date.parse(tokenResult.authTime);
+          const ageInMs = Date.now() - authTimeMs;
+          if (ageInMs > 4 * 60 * 1000) { // older than 4 minutes
+            throw new Error('For security, deleting your account requires recent authentication. Please sign out, log back in, and try again immediately.');
+          }
+        } catch (tokenErr: any) {
+          console.warn('Failed to pre-verify token authTime:', tokenErr);
+          if (tokenErr.code === 'auth/requires-recent-login' || tokenErr.message?.includes('recent-login')) {
+            throw new Error('For security, deleting your account requires recent authentication. Please sign out, log back in, and try again.');
+          }
+        }
+
         // 1. Delete profile document from Firestore first (while authorized)
-        await deleteDoc(doc(db, 'profiles', userId));
+        let firestoreDeleted = false;
+        try {
+          await deleteDoc(doc(db, 'profiles', userId));
+          firestoreDeleted = true;
+        } catch (dbErr: any) {
+          console.error("Firestore profile deletion failed:", dbErr);
+          throw new Error("Failed to delete your profile data from the database. Please try again.");
+        }
 
         // 2. Delete all uploaded profile photos from Firebase Storage
         if (myProfile.photoItems && myProfile.photoItems.length > 0) {
@@ -375,6 +397,15 @@ export default function App() {
           await deleteUser(user);
         } catch (authErr: any) {
           console.error('Error deleting Firebase Auth user account:', authErr);
+          // Attempt recovery: restore Firestore document so user is not orphaned/broken
+          if (firestoreDeleted) {
+            try {
+              await setDoc(doc(db, 'profiles', userId), myProfile);
+            } catch (restoreErr) {
+              console.error('Failed to restore Firestore document after Auth deletion failure:', restoreErr);
+            }
+          }
+
           if (authErr.code === 'auth/requires-recent-login') {
             throw new Error('For security, deleting your account requires recent authentication. Please sign out, log back in, and try again.');
           } else {
