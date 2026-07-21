@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { Heart, Mail, Phone, ArrowRight, ArrowLeft, Check, User, MapPin, Briefcase, GraduationCap, Calendar, DollarSign, Sparkles, Upload, ShieldCheck, Lock, Smartphone } from 'lucide-react';
 import { ScreenId, RegistrationState } from '../types';
 import { UploadModule } from './UploadModule';
-import { auth, db } from '../firebase';
+import { auth, db, handleFirestoreError, OperationType } from '../firebase';
 import { Capacitor } from '@capacitor/core';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signInWithPhoneNumber, RecaptchaVerifier, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
@@ -146,8 +146,13 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
       setIsLoading(true);
       try {
         const userCredential = await signInWithEmailAndPassword(auth, loginInput, loginPassword);
-        const userDoc = await getDoc(doc(db, 'profiles', userCredential.user.uid));
-        if (userDoc.exists()) {
+        let userDoc;
+        try {
+          userDoc = await getDoc(doc(db, 'profiles', userCredential.user.uid));
+        } catch (dbErr) {
+          handleFirestoreError(dbErr, OperationType.GET, 'profiles/' + userCredential.user.uid);
+        }
+        if (userDoc && userDoc.exists()) {
           onLoginSuccess(userDoc.data());
         } else {
           onLoginSuccess({
@@ -243,9 +248,14 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
 
       const userCredential = await confirmationResult.confirm(otpCode);
       const uid = userCredential.user.uid;
-      const userDoc = await getDoc(doc(db, 'profiles', uid));
+      let userDoc;
+      try {
+        userDoc = await getDoc(doc(db, 'profiles', uid));
+      } catch (dbErr) {
+        handleFirestoreError(dbErr, OperationType.GET, 'profiles/' + uid);
+      }
       
-      if (userDoc.exists()) {
+      if (userDoc && userDoc.exists()) {
         onLoginSuccess(userDoc.data());
       } else {
         const fallbackProfile = {
@@ -282,7 +292,11 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
             incomeRange: 'Any'
           }
         };
-        await setDoc(doc(db, 'profiles', uid), fallbackProfile);
+        try {
+          await setDoc(doc(db, 'profiles', uid), fallbackProfile);
+        } catch (dbErr) {
+          handleFirestoreError(dbErr, OperationType.WRITE, 'profiles/' + uid);
+        }
         onLoginSuccess(fallbackProfile);
       }
     } catch (err: any) {
@@ -297,8 +311,13 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
     setIsLoading(true);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, 'demo@feroz01.com', 'Password123');
-      const userDoc = await getDoc(doc(db, 'profiles', userCredential.user.uid));
-      if (userDoc.exists()) {
+      let userDoc;
+      try {
+        userDoc = await getDoc(doc(db, 'profiles', userCredential.user.uid));
+      } catch (dbErr) {
+        handleFirestoreError(dbErr, OperationType.GET, 'profiles/' + userCredential.user.uid);
+      }
+      if (userDoc && userDoc.exists()) {
         onLoginSuccess(userDoc.data());
       } else {
         onLoginSuccess({ id: userCredential.user.uid, name: 'Feroz Ahmad' });
@@ -340,7 +359,11 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
             incomeRange: 'Any'
           }
         };
-        await setDoc(doc(db, 'profiles', userCredential.user.uid), demoProfile);
+        try {
+          await setDoc(doc(db, 'profiles', userCredential.user.uid), demoProfile);
+        } catch (dbErr) {
+          handleFirestoreError(dbErr, OperationType.WRITE, 'profiles/' + userCredential.user.uid);
+        }
         onLoginSuccess(demoProfile);
       } catch (innerErr: any) {
         setLoginError(innerErr.message || 'Demo guest login failed.');
@@ -383,8 +406,13 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
       provider.setCustomParameters({ prompt: 'select_account' });
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      const userDoc = await getDoc(doc(db, 'profiles', user.uid));
-      if (userDoc.exists()) {
+      let userDoc;
+      try {
+        userDoc = await getDoc(doc(db, 'profiles', user.uid));
+      } catch (dbErr) {
+        handleFirestoreError(dbErr, OperationType.GET, 'profiles/' + user.uid);
+      }
+      if (userDoc && userDoc.exists()) {
         onLoginSuccess(userDoc.data());
       } else {
         const googleProfile = {
@@ -421,7 +449,11 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
             incomeRange: 'Any'
           }
         };
-        await setDoc(doc(db, 'profiles', user.uid), googleProfile);
+        try {
+          await setDoc(doc(db, 'profiles', user.uid), googleProfile);
+        } catch (dbErr) {
+          handleFirestoreError(dbErr, OperationType.WRITE, 'profiles/' + user.uid);
+        }
         onLoginSuccess(googleProfile);
       }
     } catch (err: any) {
@@ -510,7 +542,11 @@ export const AuthScreens: React.FC<AuthScreensProps> = ({
           }
         };
 
-        await setDoc(doc(db, 'profiles', userCredential.user.uid), createdProfile);
+        try {
+          await setDoc(doc(db, 'profiles', userCredential.user.uid), createdProfile);
+        } catch (dbErr) {
+          handleFirestoreError(dbErr, OperationType.WRITE, 'profiles/' + userCredential.user.uid);
+        }
         onLoginSuccess(createdProfile);
       } catch (err: any) {
         let msg = err.message || 'Registration failed';

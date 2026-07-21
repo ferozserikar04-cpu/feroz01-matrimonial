@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { ScreenId, UserProfile, AppNotification, PhotoItem, BiodataFile } from './types';
 import { MOCK_PROFILES, MOCK_NOTIFICATIONS } from './data';
-import { auth, db, storage } from './firebase';
+import { auth, db, storage, handleFirestoreError, OperationType } from './firebase';
 import { onAuthStateChanged, signOut, GoogleAuthProvider, signInWithCredential, deleteUser } from 'firebase/auth';
 import { collection, onSnapshot, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { ref, deleteObject } from 'firebase/storage';
@@ -285,7 +285,11 @@ export default function App() {
         console.log('Firestore profiles collection is empty. Seeding database with premium mock profiles...');
         try {
           for (const p of MOCK_PROFILES) {
-            await setDoc(doc(db, 'profiles', p.id), p);
+            try {
+              await setDoc(doc(db, 'profiles', p.id), p);
+            } catch (err) {
+              handleFirestoreError(err, OperationType.WRITE, 'profiles/' + p.id);
+            }
           }
         } catch (err) {
           console.error('Error seeding profiles:', err);
@@ -299,7 +303,7 @@ export default function App() {
         setLoadingProfiles(false);
       }
     }, (error) => {
-      console.error('Profiles listener subscription error (safe fallback in place):', error);
+      handleFirestoreError(error, OperationType.GET, 'profiles');
       setLoadingProfiles(false);
     });
 
